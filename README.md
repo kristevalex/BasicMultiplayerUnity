@@ -1,2 +1,1 @@
-# Template
-Template repository with gitignore and license
+# Small prototype game to test MLAPI in Unity
