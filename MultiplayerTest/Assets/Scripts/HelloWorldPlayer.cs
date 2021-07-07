@@ -6,6 +6,11 @@ using UnityEngine;
 
 public class HelloWorldPlayer : NetworkBehaviour
 {
+    [SerializeField]
+    float minMoveMouseDistThreshhold;
+    [SerializeField]
+    float maxVelocity;
+
     public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
     {
         WritePermission = NetworkVariablePermission.ServerOnly,
@@ -14,36 +19,45 @@ public class HelloWorldPlayer : NetworkBehaviour
 
     public override void NetworkStart()
     {
-        Move();
+        SpawnPlayer();
     }
 
-    public void Move()
+    void SpawnPlayer()
+    {
+
+    }
+
+    void MoveInDirection(Vector3 direction)
     {
         if (NetworkManager.Singleton.IsServer)
         {
-            var randomPosition = GetRandomPositionOnPlane();
-            transform.position = randomPosition;
-            Position.Value = randomPosition;
+            transform.position += direction.normalized * maxVelocity;
+            Position.Value = transform.position;
         }
         else
         {
-            SubmitPositionRequestServerRpc();
+            SubmitMovementInDirectionRequestServerRpc(direction);
         }
     }
 
     [ServerRpc]
-    void SubmitPositionRequestServerRpc(ServerRpcParams rpcParams = default)
+    void SubmitMovementInDirectionRequestServerRpc(Vector3 direction, ServerRpcParams rpcParams = default)
     {
-        Position.Value = GetRandomPositionOnPlane();
-    }
-
-    static Vector3 GetRandomPositionOnPlane()
-    {
-        return new Vector3(Random.Range(-3f, 3f), 1f, Random.Range(-3f, 3f));
+        Position.Value += direction.normalized * maxVelocity;
     }
 
     void Update()
     {
         transform.position = Position.Value;
+    }
+
+    void FixedUpdate()
+    {
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePos.z = 0;
+        if (mousePos.sqrMagnitude > minMoveMouseDistThreshhold * minMoveMouseDistThreshhold)
+        {
+            MoveInDirection(mousePos);
+        }
     }
 }

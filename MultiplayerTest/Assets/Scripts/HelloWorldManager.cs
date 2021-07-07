@@ -15,7 +15,7 @@ public class HelloWorldManager : MonoBehaviour
         {
             StatusLabels();
 
-            SubmitNewPosition();
+            //SubmitNewPosition();
         }
 
         GUILayout.EndArea();
@@ -48,7 +48,7 @@ public class HelloWorldManager : MonoBehaviour
                 var player = networkedClient.PlayerObject.GetComponent<HelloWorldPlayer>();
                 if (player)
                 {
-                    player.Move();
+                    //player.Move();
                 }
             }
         }
