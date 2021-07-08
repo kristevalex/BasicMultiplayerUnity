@@ -14,8 +14,6 @@ public class HelloWorldManager : MonoBehaviour
         else
         {
             StatusLabels();
-
-            //SubmitNewPosition();
         }
 
         GUILayout.EndArea();
@@ -36,21 +34,5 @@ public class HelloWorldManager : MonoBehaviour
         GUILayout.Label("Transport: " +
             NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name);
         GUILayout.Label("Mode: " + mode);
-    }
-
-    static void SubmitNewPosition()
-    {
-        if (GUILayout.Button(NetworkManager.Singleton.IsServer ? "Move" : "Request Position Change"))
-        {
-            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId,
-                out var networkedClient))
-            {
-                var player = networkedClient.PlayerObject.GetComponent<HelloWorldPlayer>();
-                if (player)
-                {
-                    //player.Move();
-                }
-            }
-        }
     }
 }

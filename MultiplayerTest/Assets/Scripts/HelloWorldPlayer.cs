@@ -12,6 +12,10 @@ public class HelloWorldPlayer : NetworkBehaviour
     float maxVelocity;
     [SerializeField]
     float maxRotationVelocity;
+    [SerializeField]
+    Transform modelTransform;
+    [SerializeField]
+    GameObject playerCamera;
 
     public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
     {
@@ -28,6 +32,20 @@ public class HelloWorldPlayer : NetworkBehaviour
     public override void NetworkStart()
     {
         SpawnPlayer();
+
+        if (IsLocalPlayer)
+            playerCamera.SetActive(true);
+        else
+            playerCamera.SetActive(false);
+
+        if (IsLocalPlayer)
+        {
+            GameObject defaulfCamera = GameObject.FindGameObjectWithTag("GlobalCamera");
+            if (defaulfCamera)
+                defaulfCamera.SetActive(false);
+            else
+                Debug.LogWarning("No default camera found");
+        }
     }
 
     void SpawnPlayer()
@@ -37,6 +55,8 @@ public class HelloWorldPlayer : NetworkBehaviour
 
     void MoveInDirection(Vector3 direction)
     {
+        if (!IsLocalPlayer)
+            return;
         SubmitMovementInDirectionRequestServerRpc(direction);
         if (NetworkManager.Singleton.IsServer)
             transform.position = Position.Value;
@@ -52,13 +72,12 @@ public class HelloWorldPlayer : NetworkBehaviour
     void Update()
     {
         transform.position = Position.Value;
-        transform.rotation = Quaternion.FromToRotation(Vector3.up, Direction.Value);
+        modelTransform.rotation = Quaternion.FromToRotation(Vector3.up, Direction.Value);
     }
 
     void FixedUpdate()
     {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePos.z = 0;
+        Vector3 mousePos = ScreenPosition.ZeroFromBottomLeftToCenter(Input.mousePosition);
         if (mousePos.sqrMagnitude > minMoveMouseDistThreshhold * minMoveMouseDistThreshhold)
         {
             MoveInDirection(mousePos);
