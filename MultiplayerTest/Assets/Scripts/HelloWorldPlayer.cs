@@ -85,6 +85,12 @@ public class HelloWorldPlayer : NetworkBehaviour
         if (!IsLocalPlayer)
             return;
         SubmitMovementInDirectionRequestServerRpc(direction);
+    }
+
+    [ServerRpc]
+    void SubmitMovementInDirectionRequestServerRpc(Vector3 targetDirection, ServerRpcParams rpcParams = default)
+    {
+        Direction.Value = Vector3.RotateTowards(Direction.Value, targetDirection, maxRotationVelocity, float.PositiveInfinity);
 
         body.velocity = Direction.Value.normalized * maxVelocity;
     }
@@ -94,13 +100,13 @@ public class HelloWorldPlayer : NetworkBehaviour
         if (!IsLocalPlayer)
             return;
 
-        body.velocity = Vector2.zero;
+        SubmitStopMovingRequestServerRpc();
     }
 
     [ServerRpc]
-    void SubmitMovementInDirectionRequestServerRpc(Vector3 targetDirection, ServerRpcParams rpcParams = default)
+    void SubmitStopMovingRequestServerRpc(ServerRpcParams rpcParams = default)
     {
-        Direction.Value = Vector3.RotateTowards(Direction.Value, targetDirection, maxRotationVelocity, float.PositiveInfinity);
+        body.velocity = Vector2.zero;
     }
 
     void ReciveHP(float hp)
@@ -126,6 +132,15 @@ public class HelloWorldPlayer : NetworkBehaviour
             return;
         modelTransform.rotation = Quaternion.FromToRotation(Vector3.up, Direction.Value);
         healthSlider.value = Health.Value / MaxHealth.Value;
+
+        if (NetworkManager.Singleton.IsServer)
+        {
+            Position.Value = transform.position;
+        }
+        else
+        {
+            transform.position = Position.Value;
+        }
     }
 
     void FixedUpdate()

@@ -396,7 +396,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minMoveMouseDistThreshhold: 100
-  maxVelocity: 1
+  maxVelocity: 2
   maxRotationVelocity: 0.1
   maxHealth: 10
   modelTransform: {fileID: 3880666566936397478}
