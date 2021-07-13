@@ -31,13 +31,14 @@ public class HelloWorldPlayer : NetworkBehaviour
     float maxRotationVelocity;
     [SerializeField]
     float maxHealth;
-    float health;
     [SerializeField]
     Transform modelTransform;
     [SerializeField]
     GameObject playerCamera;
     [SerializeField]
     Slider healthSlider;
+    [SerializeField]
+    Rigidbody2D body;
 
     public NetworkVariableVector3 Position = new NetworkVariableVector3(NetworkVariableSettingsTemplates.ServerOnlyWrite);
     public NetworkVariableVector3 Direction = new NetworkVariableVector3(NetworkVariableSettingsTemplates.ServerOnlyWrite);
@@ -61,7 +62,6 @@ public class HelloWorldPlayer : NetworkBehaviour
                 Debug.LogWarning("No default camera found");
 
             SpawnPlayer();
-            health = maxHealth;
         }
     }
 
@@ -85,22 +85,45 @@ public class HelloWorldPlayer : NetworkBehaviour
         if (!IsLocalPlayer)
             return;
         SubmitMovementInDirectionRequestServerRpc(direction);
-        if (NetworkManager.Singleton.IsServer)
-            transform.position = Position.Value;
+
+        body.velocity = Direction.Value.normalized * maxVelocity;
+    }
+
+    void StopMoving()
+    {
+        if (!IsLocalPlayer)
+            return;
+
+        body.velocity = Vector2.zero;
     }
 
     [ServerRpc]
     void SubmitMovementInDirectionRequestServerRpc(Vector3 targetDirection, ServerRpcParams rpcParams = default)
     {
         Direction.Value = Vector3.RotateTowards(Direction.Value, targetDirection, maxRotationVelocity, float.PositiveInfinity);
-        Position.Value += Direction.Value.normalized * maxVelocity;
+    }
+
+    void ReciveHP(float hp)
+    {
+        SubmitReciveHPRequestServerRpc(hp);
+    }
+
+    [ServerRpc]
+    void SubmitReciveHPRequestServerRpc(float hp, ServerRpcParams rpcParams = default)
+    {
+        Health.Value = Mathf.Max(0f, Mathf.Min(MaxHealth.Value, Health.Value + hp));
+    }
+
+    [ServerRpc]
+    void SubmitAOEDamageRequestServerRpc(Vector3 targetCenter, float radius, float damage, ServerRpcParams rpcParams = default)
+    {
+
     }
 
     void Update()
     {
         if (!PlayerSpawned.Value)
             return;
-        transform.position = Position.Value;
         modelTransform.rotation = Quaternion.FromToRotation(Vector3.up, Direction.Value);
         healthSlider.value = Health.Value / MaxHealth.Value;
     }
@@ -111,6 +134,10 @@ public class HelloWorldPlayer : NetworkBehaviour
         if (mousePos.sqrMagnitude > minMoveMouseDistThreshhold * minMoveMouseDistThreshhold)
         {
             MoveInDirection(mousePos);
+        }
+        else
+        {
+            StopMoving();
         }
     }
 }
