@@ -109,21 +109,22 @@ public class HelloWorldPlayer : NetworkBehaviour
         body.velocity = Vector2.zero;
     }
 
-    void ReciveHP(float hp)
+    public void ReciveHP(float hp)
     {
         SubmitReciveHPRequestServerRpc(hp);
     }
 
     [ServerRpc]
-    void SubmitReciveHPRequestServerRpc(float hp, ServerRpcParams rpcParams = default)
+    public void SubmitReciveHPRequestServerRpc(float hp, ServerRpcParams rpcParams = default)
     {
         Health.Value = Mathf.Max(0f, Mathf.Min(MaxHealth.Value, Health.Value + hp));
     }
 
     [ServerRpc]
-    void SubmitAOEDamageRequestServerRpc(Vector3 targetCenter, float radius, float damage, ServerRpcParams rpcParams = default)
+    void SubmitAOEDamageRequestServerRpc(Vector3 targetCenter, float radius, float damage, ulong clientId, ServerRpcParams rpcParams = default)
     {
-
+        AOEDamage dm = new AOEDamage();
+        dm.DamageInArea(transform.position, 100, 20, NetworkManager.Singleton.LocalClientId);
     }
 
     void Update()
@@ -141,10 +142,20 @@ public class HelloWorldPlayer : NetworkBehaviour
         {
             transform.position = Position.Value;
         }
+
+        if (IsLocalPlayer)
+        {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                SubmitAOEDamageRequestServerRpc(transform.position, 100, 20, NetworkManager.Singleton.LocalClientId);
+            }
+        }
     }
 
     void FixedUpdate()
     {
+        if (!IsLocalPlayer)
+            return;
         Vector3 mousePos = ScreenPosition.ZeroFromBottomLeftToCenter(Input.mousePosition);
         if (mousePos.sqrMagnitude > minMoveMouseDistThreshhold * minMoveMouseDistThreshhold)
         {
