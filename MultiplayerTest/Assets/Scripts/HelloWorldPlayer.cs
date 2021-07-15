@@ -40,6 +40,8 @@ public class HelloWorldPlayer : NetworkBehaviour
     [SerializeField]
     Rigidbody2D body;
 
+    Joystick joystick;
+
     public NetworkVariableVector3 Position = new NetworkVariableVector3(NetworkVariableSettingsTemplates.ServerOnlyWrite);
     public NetworkVariableVector3 Direction = new NetworkVariableVector3(NetworkVariableSettingsTemplates.ServerOnlyWrite);
     public NetworkVariableFloat MaxHealth = new NetworkVariableFloat(NetworkVariableSettingsTemplates.ServerOnlyWrite);
@@ -62,6 +64,8 @@ public class HelloWorldPlayer : NetworkBehaviour
                 Debug.LogWarning("No default camera found");
 
             SpawnPlayer();
+
+            joystick = FindObjectOfType<Joystick>();
         }
     }
 
@@ -156,14 +160,21 @@ public class HelloWorldPlayer : NetworkBehaviour
     {
         if (!IsLocalPlayer)
             return;
-        Vector3 mousePos = ScreenPosition.ZeroFromBottomLeftToCenter(Input.mousePosition);
-        if (mousePos.sqrMagnitude > minMoveMouseDistThreshhold * minMoveMouseDistThreshhold)
+
+        if (joystick)
         {
-            MoveInDirection(mousePos);
+            if (joystick.Direction.sqrMagnitude > minMoveMouseDistThreshhold * minMoveMouseDistThreshhold)
+            {
+                MoveInDirection(joystick.Direction);
+            }
+            else
+            {
+                StopMoving();
+            }
         }
         else
         {
-            StopMoving();
+            Debug.LogError("Joystick not found (clientId: " + NetworkManager.Singleton.LocalClientId + ").");
         }
     }
 }

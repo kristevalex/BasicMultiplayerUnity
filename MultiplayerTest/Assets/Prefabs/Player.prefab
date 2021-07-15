@@ -395,7 +395,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c814e05e51ef92459040a5f9e78ac36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minMoveMouseDistThreshhold: 100
+  minMoveMouseDistThreshhold: 0.5
   maxVelocity: 2
   maxRotationVelocity: 0.1
   maxHealth: 100
