@@ -73,6 +73,7 @@ public class HelloWorldPlayer : NetworkBehaviour
     {
         if (!IsLocalPlayer)
             return;
+
         SubmitSpawnPlayerRequestServerRpc();
     }
 
@@ -88,6 +89,7 @@ public class HelloWorldPlayer : NetworkBehaviour
     {
         if (!IsLocalPlayer)
             return;
+
         SubmitMovementInDirectionRequestServerRpc(direction);
     }
 
@@ -113,14 +115,14 @@ public class HelloWorldPlayer : NetworkBehaviour
         body.velocity = Vector2.zero;
     }
 
-    public void ReciveHP(float hp)
+    public void ReciveHPServerOnly(float hp, ServerRpcParams rpcParams = default)
     {
-        SubmitReciveHPRequestServerRpc(hp);
-    }
+        if (!NetworkManager.Singleton.IsServer)
+        {
+            Debug.LogWarning("Trying to call server only metod 'ReciveHPServerOnly' on client (id: " + NetworkManager.Singleton.LocalClientId + ").");
+            return;
+        }
 
-    [ServerRpc]
-    public void SubmitReciveHPRequestServerRpc(float hp, ServerRpcParams rpcParams = default)
-    {
         Health.Value = Mathf.Max(0f, Mathf.Min(MaxHealth.Value, Health.Value + hp));
     }
 
@@ -128,13 +130,14 @@ public class HelloWorldPlayer : NetworkBehaviour
     void SubmitAOEDamageRequestServerRpc(Vector3 targetCenter, float radius, float damage, ulong clientId, ServerRpcParams rpcParams = default)
     {
         AOEDamage dm = new AOEDamage();
-        dm.DamageInArea(transform.position, 100, 20, NetworkManager.Singleton.LocalClientId);
+        dm.DamageInArea(targetCenter, radius, damage, clientId);
     }
 
     void Update()
     {
         if (!PlayerSpawned.Value)
             return;
+
         modelTransform.rotation = Quaternion.FromToRotation(Vector3.up, Direction.Value);
         healthSlider.value = Health.Value / MaxHealth.Value;
 

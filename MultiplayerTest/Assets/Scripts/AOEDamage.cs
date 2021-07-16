@@ -8,11 +8,12 @@ public class AOEDamage
         foreach (Collider2D collider in colliders)
         {
             var player = collider.gameObject.GetComponent<HelloWorldPlayer>();
+
             if (player)
             {
                 if (player.OwnerClientId != clientId)
                 {
-                    player.SubmitReciveHPRequestServerRpc(-damage);
+                    player.ReciveHPServerOnly(-damage);
                 }
             }
         }
