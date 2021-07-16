@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Model
   - GlobalCamera
+  - FireButton
   layers:
   - Default
   - TransparentFX

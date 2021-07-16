@@ -152,8 +152,9 @@ public class HelloWorldPlayer : NetworkBehaviour
 
         if (IsLocalPlayer)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Space) || FireButton.fired)
             {
+                FireButton.fired = false;
                 SubmitAOEDamageRequestServerRpc(transform.position, 100, 20, NetworkManager.Singleton.LocalClientId);
             }
         }
