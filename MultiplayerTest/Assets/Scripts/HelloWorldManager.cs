@@ -1,29 +1,30 @@
 using MLAPI;
+using MLAPI.Transports.UNET;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class HelloWorldManager : MonoBehaviour
 {
+    [SerializeField]
+    GameObject connectionButtons;
+    [SerializeField]
+    InputField inputIp;
+
     void OnGUI()
     {
         GUILayout.BeginArea(new Rect(10, 10, 300, 300));
-        if (!NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+        if (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer)
         {
-            StartButtons();
+            connectionButtons.SetActive(false);
+            StatusLabels();
         }
         else
         {
-            StatusLabels();
+            connectionButtons.SetActive(true);
         }
 
         GUILayout.EndArea();
-    }
-
-    static void StartButtons()
-    {
-        if (GUILayout.Button("Host")) NetworkManager.Singleton.StartHost();
-        if (GUILayout.Button("Client")) NetworkManager.Singleton.StartClient();
-        if (GUILayout.Button("Server")) NetworkManager.Singleton.StartServer();
     }
 
     static void StatusLabels()
@@ -34,5 +35,29 @@ public class HelloWorldManager : MonoBehaviour
         GUILayout.Label("Transport: " +
             NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name);
         GUILayout.Label("Mode: " + mode);
+    }
+
+    public void StartHost()
+    {
+        NetworkManager.Singleton.StartHost();
+    }
+
+    public void StartClient()
+    {
+        if (inputIp.text.Length <= 0)
+        {
+            NetworkManager.Singleton.GetComponent<UNetTransport>().ConnectAddress = "127.0.0.1";
+        }
+        else
+        {
+            NetworkManager.Singleton.GetComponent<UNetTransport>().ConnectAddress = inputIp.text;
+        }
+
+        NetworkManager.Singleton.StartClient();
+    }
+
+    public void StartServer()
+    {
+        NetworkManager.Singleton.StartServer();
     }
 }
